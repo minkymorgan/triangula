@@ -2,5 +2,6 @@
 .idea/
 *.txt
 main.go
+!experiments/**/main.go
 *.prof
 imgs/
