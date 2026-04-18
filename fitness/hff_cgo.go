@@ -33,6 +33,23 @@ func HFFSingle(objectives []float64) float64 {
 	return out
 }
 
+// HFFCDF wraps the Beta-CDF correction exposed by libhff_core. Takes a raw
+// angular distance theta (radians) and the objective count m, returns a
+// dimension-invariant percentile in [0, 1]. Required when individuals in the
+// same population have different objective counts (e.g. evolved-T quadtree).
+//
+// NOTE: for large m and small theta the f64 result underflows to 0. Use
+// HFFLogCDF in that regime.
+func HFFCDF(theta float64, m int) float64 {
+	return float64(C.hff_cdf_correction(C.double(theta), C.size_t(m)))
+}
+
+// HFFLogCDF returns log(CDF) directly — always finite (range ~[-1e5, 0]),
+// so fitness values can be compared across m in the underflow regime.
+func HFFLogCDF(theta float64, m int) float64 {
+	return float64(C.hff_log_cdf_correction(C.double(theta), C.size_t(m)))
+}
+
 // HFFSingleTrueNorth computes the TrueNorth variant for a single individual
 // without requiring population context. TrueNorth augments the objective
 // space with an energy dimension and uses pole (0,...,0,1), so for a single

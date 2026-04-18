@@ -185,7 +185,96 @@ SSIM/LPIPS or a human forced-choice to test.
 - Grid coarseness matters: 8×8 consistently beats 16×16 and 32×32 at
   these point budgets.
 
-### Future work
+### Round 6 (v6) — evolve T as a gene (quadtree decomposition is learned)
+
+Code: `experiments/hff_evolveT/`. The quadtree variance threshold `T` is
+encoded as a gene alongside point positions. Each individual carries its own
+`(points, T)` genome, builds its own quadtree decomposition (cached by
+rounded T), produces its own objective vector, and is scored by HFF-TrueNorth
+angular distance with CDF correction. Single evolutionary loop — no
+outer/inner nesting, no PSNR anchor.
+
+**Fixing the CDF underflow.** First run with `fitness = 1 − CDF(theta, m)`
+saturated immediately at 1.000000 — every candidate's CDF underflowed f64
+to exactly 0. In the image-reconstruction regime, theta values live in the
+far-left whisker (theta ≈ 0.001 rad at m ≈ 2000) where
+`exp(α·ln(x) + β·ln(1−x) − lnB(α,β))` drops well below `f64::MIN_POSITIVE`.
+The CDF correction was designed for DTLZ/WFG where thetas span the bulk of
+[0, π]; our regime is different.
+
+Fix: added `log_cdf_beta_correction` in the HFF Rust core
+(`higd::log_cdf_beta_correction`, exposed via `hff_log_cdf_correction` in
+the C ABI, HFF branch `feat/c-api` commit `07c4521`). Keeps the prefactor
+in log space and runs the standard Lentz continued fraction in linear
+space; returns `ln(CDF)` directly, always representable in f64.
+
+Probe at m=2000, theta=1° → raw CDF = 0 (underflow), log_cdf = −8096.5 —
+discriminating.
+
+**Second measurement: log_cdf is ~linear in m at fixed per-objective
+quality.** Probe at V=0.001 across m ∈ {16, 64, …, 4096} shows
+`log_cdf/m ≈ −6.56` (asymptotically). So `−log_cdf` as fitness rewards m
+mechanically; tried `−log_cdf/m` to remove this — same m-bias at our
+working precision, T still pins to minimum (max m).
+
+Decision: T evolving to max m is not itself a failure — if the resulting
+triangulation is better than scalar Triangula's on image quality, the
+decomposition choice is incidental. Compared on PSNR.
+
+**PSNR comparison, dog pts=600, seed=42:**
+
+| Method                                  | Gens | PSNR (dB) |
+|-----------------------------------------|-----:|----------:|
+| scalar Triangula                        | 5000 | **20.54** |
+| scalar Triangula                        |10000 | 20.53     |
+| scalar Triangula                        |25000 | 20.72     |
+| evolveT HFF-TN logcdfpm                 |  300 | 18.94     |
+| evolveT HFF-TN logcdfpm                 | 5000 | 19.30     |
+| evolveT HFF-TN raw theta                |  300 | 18.94     |
+| evolveT HFF-TN logcdf (no /m)           |  300 | 18.82     |
+| evolveT HFF-TN raw CDF (underflow)      |  100 | 13.87     |
+
+At matched compute (5000 gens), evolveT HFF is ~1.24 dB worse than scalar.
+The gap doesn't close.
+
+### Honest conclusion across v1–v6
+
+On pixel MSE / PSNR — the standard ground-truth metric for image
+reconstruction — Triangula's scalar fitness beats every HFF variant we
+tried:
+
+| HFF variant                      | Best result vs scalar                    |
+|----------------------------------|------------------------------------------|
+| BalancedNorth fixed grid (v1)    | visibly noisier; wrong pole geometry     |
+| TrueNorth fixed grid (v2–v4)     | ties or loses by 0.05–0.35 dB on PSNR    |
+| Salience-weighted fixed grid     | narrows but does not overturn gap        |
+| EvolveT raw CDF (v6)             | fitness degenerate (underflow)           |
+| EvolveT log-CDF (v6)             | m-biased; ~1.24 dB below scalar @ 5k gens|
+
+**What we learned:**
+
+1. HFF's CDF correction has an f64 underflow problem outside the DTLZ/WFG
+   benchmark regime. Fixed with a log-space variant pushed upstream — a
+   useful contribution for any future many-objective problem in the
+   left-tail regime, whether or not image triangulation is the right task.
+2. BalancedNorth is the wrong pole for reconstruction; TrueNorth is
+   correct but doesn't add value over direct scalar MSE here.
+3. Variance-subdivided quadtrees give HFF sensible per-region objectives,
+   and T evolves to the finest possible decomposition — consistent with
+   "more degrees of freedom = better angular fitness". Doesn't translate
+   to better PSNR.
+4. The cleanest apples-to-apples benchmark is `experiments/hff/rescore/`:
+   pixel MSE + PSNR against the input, no training-metric dependency.
+
+**Where HFF likely still helps** (untested in this experiment): problems
+where the user genuinely has multiple incommensurate objectives (not a
+single MSE target) and needs one scalar selection rule over all of them.
+That's the use case the GECCO 2026 poster targets (many-objective,
+autonomous decision loops). Image triangulation, with a single MSE-like
+ground truth, is effectively single-objective and scalar MSE is already
+the right fitness.
+
+### Future work (if this direction is continued)
 
 - Edge-alignment as an additional objective axis (Sobel residuals) — should
   further sharpen boundary-heavy images.
