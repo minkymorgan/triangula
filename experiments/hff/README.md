@@ -1,5 +1,17 @@
 # HFF vs Scalar Fitness — Triangula Experiment
 
+> **Important correction (v5)**: rounds v1–v4 below compared *training fitness*
+> between scalar and HFF modes — but those are measured on **different
+> yardsticks** (scalar = normalised pixel-MSE; HFF = angular distance on
+> hypersphere). Both land in [0,1] with "higher is better" but are not
+> directly comparable.
+>
+> The apples-to-apples rescore against the original input (pixel MSE / PSNR,
+> and Triangula's own scalar fitness applied to every run's final point group)
+> shows a different story: **Triangula's scalar fitness wins or ties on MSE /
+> PSNR in almost every configuration**. See Round 5 below.
+
+
 This directory contains side-by-side comparisons of Triangula's built-in
 **scalar fitness** (sum of per-triangle pixel variance + blank-area penalty)
 against **HFF many-objective fitness** (per-cell variance objectives aggregated
@@ -120,7 +132,61 @@ so the fitness geometry itself is perceptually reweighted. Applying
 salience before normalisation would couple with `cap_i` in nonsensical
 ways; applying after projection would break the unit-sphere geometry.
 
+### Round 5 (v5) — apples-to-apples rescoring
+
+Two independent rescores applied to every existing PNG render:
+
+1. **PSNR / pixel-MSE** between the original input image and the rendered
+   output (computed by `experiments/hff/rescore/`, output
+   `output/scores_rgb.csv`).
+2. **Triangula's scalar fitness** applied to every run's final point group
+   regardless of training mode — computed in the runner and logged to
+   `output/scores.csv`.
+
+Both metrics agree. A sample from `output/rescore_ranking.txt`:
+
+```
+## dog pts=1000
+  scalar  gens= 15000  seed=123  MSE= 549.0330  PSNR= 20.73 dB  [scalar]
+  scalar  gens= 15000  seed=  1  MSE= 549.8789  PSNR= 20.73 dB  [scalar]
+  scalar  gens= 15000  seed=  7  MSE= 554.5847  PSNR= 20.69 dB  [scalar]
+     hff  gens= 15000  seed=  1  MSE= 558.0904  PSNR= 20.66 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 15000  seed=123  MSE= 558.1808  PSNR= 20.66 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 15000  seed=  7  MSE= 560.3389  PSNR= 20.65 dB  [hff_8x8_truenorth_sal]
+  scalar  gens= 25000  seed= 42  MSE= 551.1262  PSNR= 20.72 dB  [scalar]
+     hff  gens= 25000  seed= 42  MSE= 555.3466  PSNR= 20.69 dB  [hff_8x8_truenorth_sal]
+```
+
+**Corrected headline**: Triangula's scalar-fitness training wins or ties
+scalar-score and PSNR across nearly every configuration tested. Typical
+gap is ~0.05–0.35 dB PSNR — small, but real and consistent.
+
+HFF's earlier "wins" were an artefact of training on its own angular
+metric and reporting that number. On the apples-to-apples pixel-error
+yardstick, scalar training is the better optimisation objective for
+this task.
+
+**The visual differences I initially described are therefore likely
+confirmation bias** — at ~0.03 dB PSNR gap the renders are
+indistinguishable in practice. Whether HFF *distributes* the same total
+error differently (concentrated in flat areas, sparing face detail) is a
+separate perceptual hypothesis that PSNR can't adjudicate — it would need
+SSIM/LPIPS or a human forced-choice to test.
+
+### What we actually learned (honest summary)
+
+- HFF as a per-individual aggregator over per-cell variance objectives, at
+  these budgets, does not beat MSE-minimising scalar fitness on MSE.
+- BalancedNorth pole is actively wrong geometry for this task (v1).
+- TrueNorth is the correct pole choice; behaves comparably to scalar but
+  doesn't beat it.
+- Salience weighting helps HFF vs. uniform-weight HFF but doesn't close
+  the gap to scalar.
+- Grid coarseness matters: 8×8 consistently beats 16×16 and 32×32 at
+  these point budgets.
+
 ### Future work
+
 - Edge-alignment as an additional objective axis (Sobel residuals) — should
   further sharpen boundary-heavy images.
 - Per-channel (R/G/B) variance objectives — richer colour geometry at the

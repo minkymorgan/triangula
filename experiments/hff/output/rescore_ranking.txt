@@ -1,0 +1,91 @@
+
+=== Ranked by PSNR (higher is better) — grouped by image+points ===
+
+## dog pts=300
+  scalar  gens=  5000  seed= 42  MSE= 614.8164  PSNR= 20.24 dB  [scalar]
+  scalar  gens= 10000  seed= 42  MSE= 610.5609  PSNR= 20.27 dB  [scalar]
+     hff  gens= 10000  seed= 42  MSE= 675.5624  PSNR= 19.83 dB  [hff_8x8_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 678.5320  PSNR= 19.82 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 707.4315  PSNR= 19.63 dB  [hff_16x16_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 717.1085  PSNR= 19.57 dB  [hff_16x16_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 743.2605  PSNR= 19.42 dB  [hff_32x32_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE=1035.9532  PSNR= 17.98 dB  [hff_32x32_truenorth]
+  scalar  gens= 25000  seed= 42  MSE= 607.6201  PSNR= 20.29 dB  [scalar]
+     hff  gens= 25000  seed= 42  MSE= 674.4055  PSNR= 19.84 dB  [hff_8x8_truenorth_sal]
+
+## dog pts=600
+  scalar  gens=  5000  seed= 42  MSE= 574.8695  PSNR= 20.54 dB  [scalar]
+  scalar  gens= 10000  seed= 42  MSE= 575.7554  PSNR= 20.53 dB  [scalar]
+     hff  gens= 10000  seed= 42  MSE= 587.9067  PSNR= 20.44 dB  [hff_8x8_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 595.8359  PSNR= 20.38 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 632.6710  PSNR= 20.12 dB  [hff_16x16_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 638.6203  PSNR= 20.08 dB  [hff_32x32_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 649.6620  PSNR= 20.00 dB  [hff_16x16_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 686.9720  PSNR= 19.76 dB  [hff_32x32_truenorth_sal]
+
+## dog pts=1000
+  scalar  gens= 15000  seed=123  MSE= 549.0330  PSNR= 20.73 dB  [scalar]
+  scalar  gens= 15000  seed=  1  MSE= 549.8789  PSNR= 20.73 dB  [scalar]
+  scalar  gens= 15000  seed=  7  MSE= 554.5847  PSNR= 20.69 dB  [scalar]
+     hff  gens= 15000  seed=  1  MSE= 558.0904  PSNR= 20.66 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 15000  seed=123  MSE= 558.1808  PSNR= 20.66 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 15000  seed=  7  MSE= 560.3389  PSNR= 20.65 dB  [hff_8x8_truenorth_sal]
+  scalar  gens= 25000  seed= 42  MSE= 551.1262  PSNR= 20.72 dB  [scalar]
+     hff  gens= 25000  seed= 42  MSE= 555.3466  PSNR= 20.69 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 25000  seed= 42  MSE= 562.5490  PSNR= 20.63 dB  [hff_16x16_truenorth_sal]
+
+## elon pts=300
+  scalar  gens=  5000  seed= 42  MSE= 414.5080  PSNR= 21.96 dB  [scalar]
+     hff  gens= 10000  seed= 42  MSE= 406.8105  PSNR= 22.04 dB  [hff_8x8_truenorth]
+  scalar  gens= 10000  seed= 42  MSE= 411.8185  PSNR= 21.98 dB  [scalar]
+     hff  gens= 10000  seed= 42  MSE= 447.9537  PSNR= 21.62 dB  [hff_32x32_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 450.1880  PSNR= 21.60 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 455.8670  PSNR= 21.54 dB  [hff_16x16_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 501.5744  PSNR= 21.13 dB  [hff_16x16_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 523.6314  PSNR= 20.94 dB  [hff_32x32_truenorth]
+
+## elon pts=600
+  scalar  gens=  5000  seed= 42  MSE= 375.5129  PSNR= 22.38 dB  [scalar]
+  scalar  gens= 10000  seed= 42  MSE= 370.4868  PSNR= 22.44 dB  [scalar]
+     hff  gens= 10000  seed= 42  MSE= 379.7315  PSNR= 22.34 dB  [hff_8x8_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 380.2405  PSNR= 22.33 dB  [hff_16x16_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 381.6377  PSNR= 22.31 dB  [hff_32x32_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 387.5108  PSNR= 22.25 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 429.4184  PSNR= 21.80 dB  [hff_16x16_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 435.0691  PSNR= 21.75 dB  [hff_32x32_truenorth_sal]
+
+## elon pts=1000
+  scalar  gens= 25000  seed= 42  MSE= 355.8641  PSNR= 22.62 dB  [scalar]
+     hff  gens= 25000  seed= 42  MSE= 356.0639  PSNR= 22.62 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 25000  seed= 42  MSE= 374.3434  PSNR= 22.40 dB  [hff_16x16_truenorth_sal]
+
+## obama pts=300
+  scalar  gens=  5000  seed= 42  MSE= 494.2794  PSNR= 21.19 dB  [scalar]
+  scalar  gens= 10000  seed= 42  MSE= 489.4078  PSNR= 21.23 dB  [scalar]
+     hff  gens= 10000  seed= 42  MSE= 499.9828  PSNR= 21.14 dB  [hff_8x8_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 567.8505  PSNR= 20.59 dB  [hff_16x16_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 571.9193  PSNR= 20.56 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 786.1624  PSNR= 19.18 dB  [hff_16x16_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 950.5570  PSNR= 18.35 dB  [hff_32x32_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE=1790.4514  PSNR= 15.60 dB  [hff_32x32_truenorth]
+
+## obama pts=600
+  scalar  gens=  5000  seed= 42  MSE= 455.0516  PSNR= 21.55 dB  [scalar]
+  scalar  gens= 10000  seed= 42  MSE= 455.9442  PSNR= 21.54 dB  [scalar]
+     hff  gens= 10000  seed= 42  MSE= 461.1169  PSNR= 21.49 dB  [hff_8x8_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 492.5342  PSNR= 21.21 dB  [hff_32x32_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 493.7004  PSNR= 21.20 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 508.5788  PSNR= 21.07 dB  [hff_16x16_truenorth_sal]
+     hff  gens= 10000  seed= 42  MSE= 521.3483  PSNR= 20.96 dB  [hff_16x16_truenorth]
+     hff  gens= 10000  seed= 42  MSE= 625.4483  PSNR= 20.17 dB  [hff_32x32_truenorth_sal]
+
+## obama pts=1000
+  scalar  gens= 15000  seed=123  MSE= 424.9421  PSNR= 21.85 dB  [scalar]
+  scalar  gens= 15000  seed=  1  MSE= 431.0198  PSNR= 21.79 dB  [scalar]
+  scalar  gens= 15000  seed=  7  MSE= 439.9268  PSNR= 21.70 dB  [scalar]
+     hff  gens= 15000  seed=  1  MSE= 451.8868  PSNR= 21.58 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 15000  seed=123  MSE= 465.3677  PSNR= 21.45 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 15000  seed=  7  MSE= 482.8419  PSNR= 21.29 dB  [hff_8x8_truenorth_sal]
+  scalar  gens= 25000  seed= 42  MSE= 439.2594  PSNR= 21.70 dB  [scalar]
+     hff  gens= 25000  seed= 42  MSE= 462.1408  PSNR= 21.48 dB  [hff_8x8_truenorth_sal]
+     hff  gens= 25000  seed= 42  MSE= 478.1154  PSNR= 21.34 dB  [hff_16x16_truenorth_sal]
