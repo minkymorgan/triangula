@@ -81,6 +81,45 @@ Gap widens from 0.01% at pts=600 to 0.02% at pts=1000 — **HFF's advantage
 grows with triangle budget**, as expected when multi-objective geometry has
 more degrees of freedom to exploit.
 
+### Round 4 (v4) — seed robustness
+Output: `output/` (v4 files suffixed `-s{seed}`)
+
+Tested whether HFF's v3 advantage survives seed perturbation. Ran scalar vs
+HFF 8×8 TN+sal at 1000 points / 15k gens across seeds {1, 7, 123} on dog
+and obama (elon skipped — flat-background image, small v3 gap).
+
+| Image | Seed | Scalar   | HFF 8×8 TN+sal | Δ |
+|-------|---:|---------:|---------------:|---:|
+| dog   |   1 | 0.999589 | **0.999834**   | +0.0245% |
+| dog   |   7 | 0.999600 | **0.999829**   | +0.0229% |
+| dog   | 123 | 0.999583 | **0.999819**   | +0.0236% |
+| obama |   1 | 0.999562 | **0.999791**   | +0.0229% |
+| obama |   7 | 0.999567 | **0.999741**   | +0.0174% |
+| obama | 123 | 0.999569 | **0.999776**   | +0.0207% |
+
+**HFF wins every single seed.** Δ is remarkably stable across seeds
+(0.017–0.025%), indicating the advantage is systematic, not lucky
+initialisation.
+
+### Salience-timing note
+
+The salience weight `w_i ∈ [0.25, 1.5]` is applied **after** per-cell
+min-max normalisation and **before** HFF projection onto the hypersphere:
+
+```
+v_i = clamp(perCell[i] / cap_i, 0, 1)   // normalise
+v_i *= w_i ; v_i = min(v_i, 1)          // salience reweight
+objectives[i] = v_i
+theta = acos(1 - Σ v_i² / n)            // project + aggregate
+```
+
+This is the right spot because the projection's "north pole" then
+corresponds to "all *weighted* errors near zero" — high-salience cells
+contribute `w_i² ≈ 2.25×` more to the energy than flat cells (`≈ 0.06×`),
+so the fitness geometry itself is perceptually reweighted. Applying
+salience before normalisation would couple with `cap_i` in nonsensical
+ways; applying after projection would break the unit-sphere geometry.
+
 ### Future work
 - Edge-alignment as an additional objective axis (Sobel residuals) — should
   further sharpen boundary-heavy images.
