@@ -27,7 +27,10 @@ type trianglesHFFFunction struct {
 	cellsX, cellsY int
 	cellW, cellH   int
 	cellMax        []float64 // per-cell cap = cell_pixels * maxPixelDifference
+	cellWeight     []float64 // per-cell importance weight (salience); default 1.0
 	imgW, imgH     int
+
+	method string // "balanced" or "truenorth"
 
 	// Cache: per-triangle, stores cell index + variance (so generations with
 	// stable triangles skip rasterisation).
@@ -196,7 +199,7 @@ func (t *trianglesHFFFunction) Calculate(data PointsData) float64 {
 	t.TriangleCache = t.nextCache
 
 	// Build the objective vector: per-cell normalised variance + coverage deficit.
-	// Normalise each cell by its cap so objectives live in [0,1].
+	// Normalise each cell by its cap so objectives live in [0,1], then weight.
 	objectives := make([]float64, nCells+1)
 	for i := 0; i < nCells; i++ {
 		cap := t.cellMax[i]
@@ -211,6 +214,12 @@ func (t *trianglesHFFFunction) Calculate(data PointsData) float64 {
 		if v > 1 {
 			v = 1
 		}
+		if t.cellWeight != nil {
+			v *= t.cellWeight[i]
+			if v > 1 {
+				v = 1
+			}
+		}
 		objectives[i] = v
 	}
 	blankFrac := (float64(w*h) - area) / float64(w*h)
@@ -222,9 +231,14 @@ func (t *trianglesHFFFunction) Calculate(data PointsData) float64 {
 	}
 	objectives[nCells] = blankFrac
 
-	theta := HFFSingle(objectives)
+	var theta float64
+	switch t.method {
+	case "truenorth":
+		theta = HFFSingleTrueNorth(objectives)
+	default:
+		theta = HFFSingle(objectives)
+	}
 	// Algorithm maximises fitness; HFF outputs angular distance (lower is better).
-	// Map to [0,1]-ish where higher is better: 1 - theta/pi.
 	return 1.0 - theta/math.Pi
 }
 
@@ -237,8 +251,9 @@ func (t *trianglesHFFFunction) Cache() []CacheData        { return t.TriangleCac
 func (t *trianglesHFFFunction) SetCache(c []CacheData)    { t.TriangleCache = c }
 
 // TrianglesHFFFunctions returns n fitness functions using HFF aggregation over
-// a (cellsX x cellsY)+1 objective vector.
-func TrianglesHFFFunctions(target image.Data, blockSize, cellsX, cellsY, n int) []CacheFunction {
+// a (cellsX x cellsY)+1 objective vector. method is "balanced" or "truenorth".
+// cellWeight is optional (nil = uniform); when supplied, length must be cellsX*cellsY.
+func TrianglesHFFFunctions(target image.Data, blockSize, cellsX, cellsY, n int, method string, cellWeight []float64) []CacheFunction {
 	w, h := target.Size()
 	cellW := w / cellsX
 	cellH := h / cellsY
@@ -269,6 +284,13 @@ func TrianglesHFFFunctions(target image.Data, blockSize, cellsX, cellsY, n int) 
 	pixels := fromImage(target)
 	pixelsN := fromImageN(target, blockSize)
 
+	if cellWeight != nil && len(cellWeight) != nCells {
+		cellWeight = nil
+	}
+	if method != "balanced" && method != "truenorth" {
+		method = "balanced"
+	}
+
 	funcs := make([]CacheFunction, n)
 	for i := 0; i < n; i++ {
 		f := &trianglesHFFFunction{
@@ -280,11 +302,91 @@ func TrianglesHFFFunctions(target image.Data, blockSize, cellsX, cellsY, n int) 
 			cellW:         cellW,
 			cellH:         cellH,
 			cellMax:       cellMax,
+			cellWeight:    cellWeight,
 			imgW:          w,
 			imgH:          h,
+			method:        method,
 			TriangleCache: make([]CacheData, 1<<22),
 		}
 		funcs[i] = f
 	}
 	return funcs
+}
+
+// TargetSalienceWeights computes per-cell weights based on target-image
+// variance: cells with more visual detail (higher pixel variance) get higher
+// weight. Returned slice has length cellsX*cellsY, values in [0.25, 1.5]
+// after normalisation.
+func TargetSalienceWeights(target image.Data, cellsX, cellsY int) []float64 {
+	w, h := target.Size()
+	cellW := w / cellsX
+	cellH := h / cellsY
+	if cellW < 1 {
+		cellW = 1
+	}
+	if cellH < 1 {
+		cellH = 1
+	}
+	n := cellsX * cellsY
+	weights := make([]float64, n)
+
+	// Per-cell variance of target luminance.
+	for cy := 0; cy < cellsY; cy++ {
+		for cx := 0; cx < cellsX; cx++ {
+			x0 := cx * cellW
+			y0 := cy * cellH
+			x1 := x0 + cellW
+			y1 := y0 + cellH
+			if cx == cellsX-1 {
+				x1 = w
+			}
+			if cy == cellsY-1 {
+				y1 = h
+			}
+			var sum, sumSq float64
+			var count int
+			for y := y0; y < y1; y++ {
+				for x := x0; x < x1; x++ {
+					c := target.RGBAt(x, y)
+					// Rec.601 luminance
+					ly := 0.299*c.R + 0.587*c.G + 0.114*c.B
+					sum += ly
+					sumSq += ly * ly
+					count++
+				}
+			}
+			var v float64
+			if count > 0 {
+				mean := sum / float64(count)
+				v = sumSq/float64(count) - mean*mean
+				if v < 0 {
+					v = 0
+				}
+			}
+			weights[cy*cellsX+cx] = v
+		}
+	}
+	// Normalise: mean ~ 1.0, clamp to [0.25, 1.5].
+	var total float64
+	for _, v := range weights {
+		total += v
+	}
+	if total > 0 {
+		mean := total / float64(n)
+		for i, v := range weights {
+			w := v / mean
+			if w < 0.25 {
+				w = 0.25
+			}
+			if w > 1.5 {
+				w = 1.5
+			}
+			weights[i] = w
+		}
+	} else {
+		for i := range weights {
+			weights[i] = 1.0
+		}
+	}
+	return weights
 }
