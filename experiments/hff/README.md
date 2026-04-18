@@ -57,12 +57,41 @@ Example (obama, pts=600, 10k gens):
 | HFF 16×16 truenorth + salience   | 0.999602 |
 | HFF 32×32 truenorth + salience   | 0.999617 |
 
-### Round 3 (v3) — TBD
-Ideas to try:
-- Multi-scale salience (coarse + fine maps combined)
-- Edge-alignment as an additional objective axis (Sobel residuals)
-- Per-channel (R/G/B) variance objectives for richer colour geometry
-- Larger triangle budgets (1000+ points) where HFF's many-objective structure should matter more
+### Round 3 (v3) — scale-up at 1000 points, 25k generations
+Output: `output/` (v3 files suffixed `_pts1000_g25000`)
+
+Tested whether HFF's v2 advantage holds or grows at larger triangle budgets.
+Compared scalar vs HFF 8×8 TN+sal vs HFF 16×16 TN+sal at 1000 points / 25k
+generations across all three images.
+
+| Image | Scalar   | HFF 8×8 TN+sal | HFF 16×16 TN+sal | Δ best |
+|---|---:|---:|---:|---:|
+| dog   | 0.999603 | **0.999837**   | 0.999826         | +0.023% |
+| elon  | 0.999794 | **0.999824**   | 0.999801         | +0.003% |
+| obama | 0.999591 | **0.999792**   | 0.999787         | +0.020% |
+
+**HFF wins on every image.** 8×8 edges out 16×16 at this budget — fewer, coarser
+cells give per-objective pressure more signal per mutation at 1000 points.
+
+**Visually (dog and obama most pronounced):** HFF allocates more triangles
+to high-variance face/detail regions; scalar over-averages faces into soft
+blobs. Eye/mouth/edge detail is clearly sharper under HFF.
+
+Gap widens from 0.01% at pts=600 to 0.02% at pts=1000 — **HFF's advantage
+grows with triangle budget**, as expected when multi-objective geometry has
+more degrees of freedom to exploit.
+
+### Future work
+- Edge-alignment as an additional objective axis (Sobel residuals) — should
+  further sharpen boundary-heavy images.
+- Per-channel (R/G/B) variance objectives — richer colour geometry at the
+  cost of refactoring `pixel.sq` into per-channel sums.
+- Population-level HFF (hff_hf1_enhanced across the whole generation) —
+  currently we run HFF per-individual with closed-form TrueNorth; population
+  normalisation may help but requires a per-generation collect-call-distribute
+  redesign of the algorithm driver.
+- Salience from a saliency model rather than luminance variance — better
+  alignment with human attention.
 
 ## Filename convention
 
