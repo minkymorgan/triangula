@@ -112,6 +112,10 @@ func main() {
 				22,
 			)
 		}
+	case "hff7":
+		evalFactory = func(n int) evaluator.Evaluator {
+			return evaluator.NewParallel(fitness.TrianglesHFF7Functions(tData, n), 22)
+		}
 	default:
 		log.Fatalf("unknown mode: %s", cfg.mode)
 	}
@@ -150,7 +154,8 @@ func main() {
 
 	var outPath string
 	var configLabel string
-	if cfg.mode == "hff" {
+	switch cfg.mode {
+	case "hff":
 		suffix := cfg.method
 		if cfg.salience {
 			suffix += "_sal"
@@ -158,7 +163,11 @@ func main() {
 		outPath = filepath.Join(cfg.outDir, fmt.Sprintf("HFF_%s_grid%dx%d_pts%d_g%d_%s.png",
 			cfg.tag, cfg.cellsX, cfg.cellsY, cfg.points, cfg.generations, suffix))
 		configLabel = fmt.Sprintf("hff_grid%dx%d_%s", cfg.cellsX, cfg.cellsY, suffix)
-	} else {
+	case "hff7":
+		outPath = filepath.Join(cfg.outDir, fmt.Sprintf("HFF7_%s_pts%d_g%d.png",
+			cfg.tag, cfg.points, cfg.generations))
+		configLabel = "hff7_3c_1e_3hf"
+	default:
 		outPath = filepath.Join(cfg.outDir, fmt.Sprintf("scalar_%s_pts%d_g%d.png",
 			cfg.tag, cfg.points, cfg.generations))
 		configLabel = "scalar"
